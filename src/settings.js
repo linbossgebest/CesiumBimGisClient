@@ -1,5 +1,5 @@
 module.exports = {
-  title: 'Vue Element Admin',
+  title: 'BIMGIS后台管理',
 
   /**
    * @type {boolean} true | false
