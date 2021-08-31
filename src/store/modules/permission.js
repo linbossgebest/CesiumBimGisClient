@@ -1,4 +1,5 @@
-import { asyncRoutes, constantRoutes } from '@/router'
+import { asyncRoutes, constantRoutes, componentMap } from '@/router'
+import { getRoutes } from '@/api/auth'
 
 /**
  * Use meta.role to determine if the current user has permission
@@ -46,18 +47,55 @@ const mutations = {
   }
 }
 
+//替换route对象中的component
+function replaceComponent(comp) {
+  if (comp.component && typeof (comp.component) == 'string') {
+    comp.component = componentMap[comp.component]
+  }
+
+  if (comp.children && comp.children.length > 0) {
+    for (let i = 0; i < comp.children.length; i++) {
+      comp.children[i] = replaceComponent(comp.children[i])
+    }
+  }
+
+  return comp
+}
+
 const actions = {
-  generateRoutes({ commit }, roles) {
-    return new Promise(resolve => {
-      let accessedRoutes
-      if (roles.includes('admin')) {
-        accessedRoutes = asyncRoutes || []
-      } else {
-        accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
+  async generateRoutes({ commit }, roles) {
+    // return new Promise(resolve => {
+    //   let accessedRoutes
+    //   if (roles.includes('admin')) {
+    //     accessedRoutes = asyncRoutes || []
+    //   } else {
+    //     accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
+    //   }
+    //   commit('SET_ROUTES', accessedRoutes)
+    //   resolve(accessedRoutes)
+    // })
+
+    //从后台接口请求所有路由信息
+    let res = await getRoutes()
+    console.log(res)
+    let myAsyncRoutes = res.data
+
+    //整理数据(替换组件名称，删除空的children)
+    myAsyncRoutes = myAsyncRoutes.filter(curr => {
+      if (curr.children == null || curr.children.length == 0) {
+        delete curr.children
       }
-      commit('SET_ROUTES', accessedRoutes)
-      resolve(accessedRoutes)
+      return replaceComponent(curr)
     })
+
+    let accessedRoutes
+    if (roles.includes('admin')) {
+      accessedRoutes = myAsyncRoutes || []
+    } else {
+      accessedRoutes = filterAsyncRoutes(myAsyncRoutes, roles)
+    }
+    commit('SET_ROUTES', accessedRoutes)
+    resolve(accessedRoutes)
   }
 }
 

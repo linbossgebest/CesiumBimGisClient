@@ -12,6 +12,18 @@ import chartsRouter from './modules/charts'
 import tableRouter from './modules/table'
 import nestedRouter from './modules/nested'
 
+export const componentMap = {
+  'layout': require('@/layout').default,
+  'redirect_index': () => import('@/views/redirect/index').then(f => f.default),
+  'login_index': () => import('@/views/login/index').then(f => f.default),
+  'login_auth_redirect': () => import('@/views/login/auth-redirect').then(f => f.default),
+  'error_page_404': () => import('@/views/error-page/404').then(f => f.default),
+  'error_page_401': () => import('@/views/error-page/401').then(f => f.default),
+  'page_permission': () => import('@/views/permission/page').then(f => f.default),
+  'directive_Permission': () => import('@/views/permission/directive').then(f => f.default),
+
+}
+
 /**
  * Note: sub-menu only appear when route children.length >= 1
  * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
