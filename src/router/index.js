@@ -12,6 +12,7 @@ import chartsRouter from './modules/charts'
 import tableRouter from './modules/table'
 import nestedRouter from './modules/nested'
 
+//自定义组件名称和组件对象的map对象
 export const componentMap = {
   'layout': require('@/layout').default,
   'redirect_index': () => import('@/views/redirect/index').then(f => f.default),
@@ -21,7 +22,9 @@ export const componentMap = {
   'error_page_401': () => import('@/views/error-page/401').then(f => f.default),
   'page_permission': () => import('@/views/permission/page').then(f => f.default),
   'directive_Permission': () => import('@/views/permission/directive').then(f => f.default),
-
+  'icon_index': () => import('@/views/icons/index').then(f => f.default),
+  'user_index': () => import('@/views/sysmanage/user').then(f => f.default),
+  'role_index': () => import('@/views/sysmanage/role').then(f => f.default),
 }
 
 /**

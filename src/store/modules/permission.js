@@ -53,6 +53,10 @@ function replaceComponent(comp) {
     comp.component = componentMap[comp.component]
   }
 
+  if (comp.children == null || comp.children.length == 0){
+    delete comp.children
+  }
+
   if (comp.children && comp.children.length > 0) {
     for (let i = 0; i < comp.children.length; i++) {
       comp.children[i] = replaceComponent(comp.children[i])
@@ -77,8 +81,8 @@ const actions = {
 
     //从后台接口请求所有路由信息
     let res = await getRoutes()
-    console.log(res)
-    let myAsyncRoutes = res.data
+    // console.log(res)
+    let myAsyncRoutes =JSON.parse(res.data).menuTree
 
     //整理数据(替换组件名称，删除空的children)
     myAsyncRoutes = myAsyncRoutes.filter(curr => {
@@ -95,7 +99,7 @@ const actions = {
       accessedRoutes = filterAsyncRoutes(myAsyncRoutes, roles)
     }
     commit('SET_ROUTES', accessedRoutes)
-    resolve(accessedRoutes)
+    return accessedRoutes
   }
 }
 
