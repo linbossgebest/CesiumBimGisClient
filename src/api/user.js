@@ -20,16 +20,17 @@ export function getInfo() {
 }
 
 //获取所有用户
-export function getUsers() {
+export function getUsers(pageIndex, pageSize) {
   return request({
     baseURL: 'http://localhost:5000',
     url: '/api/Account/GetUserList',
     method: 'get',
+    params: { pageIndex, pageSize }
   })
 }
 
 //添加用户
-export function addUser(data){
+export function addUser(data) {
   return request({
     baseURL: 'http://localhost:5000',
     url: '/api/Account/AddUser',

@@ -42,26 +42,19 @@ service.interceptors.response.use(
    * Here is just an example
    * You can also judge the status by HTTP Status Code
    */
-  response =>  {
+  response => {
     console.log(response.data)
     const res = response.data
 
-    return res
-    // console.log(res+'22222')
-    // console.log(res.code+"11111")
+    if (res.code !== 0) {
+      Message({
+        message: res.message || 'Error',
+        type: 'error',
+        duration: 5 * 1000
+      })
+    }
 
-    // if (res.code !== 0) {
-    //   // console.log(res)
-    //   // console.log(res.code)
-    //   console.log(1231231)
-    //   Message({
-    //     message: res.message || 'Error',
-    //     type: 'error',
-    //     duration: 5 * 1000
-    //   })
-    // } else {
-    //   return res
-    // }
+    return res
   },
   error => {
     console.log('err' + error) // for debug

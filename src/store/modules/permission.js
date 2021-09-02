@@ -68,17 +68,6 @@ function replaceComponent(comp) {
 
 const actions = {
   async generateRoutes({ commit }, roles) {
-    // return new Promise(resolve => {
-    //   let accessedRoutes
-    //   if (roles.includes('admin')) {
-    //     accessedRoutes = asyncRoutes || []
-    //   } else {
-    //     accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
-    //   }
-    //   commit('SET_ROUTES', accessedRoutes)
-    //   resolve(accessedRoutes)
-    // })
-
     //从后台接口请求所有路由信息
     let res = await getRoutes()
     // console.log(res)

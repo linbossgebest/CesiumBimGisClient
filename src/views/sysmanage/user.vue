@@ -50,7 +50,7 @@
       </el-table-column>
       <el-table-column label="角色名称" width="200px" align="center">
         <template slot-scope="{ row }">
-          <span>{{ row.RoleId }}</span>
+          <span>{{ roleInfo(row.RoleId) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="手机号码" width="200px" align="center">
@@ -107,11 +107,28 @@
         <el-form-item label="用户名称" prop="UserName">
           <el-input v-model="temp.UserName" />
         </el-form-item>
-        <el-form-item label="用户密码" prop="PassWord">
+        <el-form-item
+          label="用户密码"
+          prop="PassWord"
+          v-if="textMap[dialogStatus] === '创建用户'"
+        >
           <el-input v-model="temp.PassWord" />
         </el-form-item>
-        <el-form-item label="角色Id" prop="RoleId">
-          <el-input v-model="temp.RoleId" />
+        <el-form-item label="用户角色">
+          <el-select
+            v-model="temp.RoleId"
+            :label="temp.RoleName"
+            class="filter-item"
+            placeholder="Please select"
+            @change="change()"
+          >
+            <el-option
+              v-for="item in rolesList"
+              :key="item.code"
+              :label="item.name"
+              :value="item.code"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="手机号码">
           <el-input v-model="temp.Mobile" />
@@ -139,6 +156,7 @@
 import { parseTime } from "@/utils";
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
 import { getUsers, deleteUser, addUser } from "@/api/user";
+import { getRoles } from "@/api/auth";
 import waves from "@/directive/waves"; // waves directive
 
 export default {
@@ -162,20 +180,18 @@ export default {
     return {
       tableKey: 0,
       list: null,
+      rolesList: [],
       total: 0,
       listLoading: true,
       listQuery: {
         page: 1,
         limit: 20,
-        importance: undefined,
-        title: undefined,
-        type: undefined,
-        sort: "+id",
       },
       temp: {
         Id: undefined,
         UserName: "",
-        RoleId: "",
+        RoleId: undefined,
+        RoleName: undefined,
         PassWord: "",
         Mobile: "",
         Email: "",
@@ -187,7 +203,7 @@ export default {
         create: "创建用户",
       },
       rules: {
-        type: [
+        RoleId: [
           { required: true, message: "type is required", trigger: "change" },
         ],
         timestamp: [
@@ -219,11 +235,22 @@ export default {
   },
   created() {
     this.getList();
+    this.getRoleList();
   },
   methods: {
+    getRoleList() {
+      //查询角色
+      getRoles().then((response) => {
+        let data = JSON.parse(response.data);
+        data.items.forEach((item) => {
+          this.rolesList.push({ name: item.RoleName, code: item.Id });
+        });
+      });
+    },
     getList() {
+      //查询用户
       this.listLoading = true;
-      getUsers().then((response) => {
+      getUsers(this.listQuery.page, this.listQuery.limit).then((response) => {
         let data = JSON.parse(response.data);
 
         this.list = data.items;
@@ -240,7 +267,8 @@ export default {
       this.temp = {
         Id: undefined,
         UserName: "",
-        RoleId: "",
+        RoleId: 1,
+        RoleName: "admin",
         PassWord: "",
         Mobile: "",
         Email: "",
@@ -257,6 +285,7 @@ export default {
     createData() {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
+          console.log(this.temp);
           addUser(this.temp).then(() => {
             this.dialogFormVisible = false;
             this.$notify({
@@ -272,6 +301,11 @@ export default {
     },
     handleUpdate(row) {
       this.temp = Object.assign({}, row); // copy obj
+      console.log(this.rolesList);
+      // let roleName = this.rolesList.find(
+      //   (f) => f.Id === this.temp.RoleId
+      // ).RoleName;
+      // this.temp.RoleName = roleName;
       this.dialogStatus = "update";
       this.dialogFormVisible = true;
       this.$nextTick(() => {
@@ -296,15 +330,16 @@ export default {
       });
     },
     handleDelete(row, index) {
-      console.log(row.Id)
-      deleteUser(row.Id).then(() => {
-        this.$notify({
-          title: "成功",
-          message: "删除成功",
-          type: "success",
-          duration: 2000,
+      this.$confirm("请确认是否确认删除？").then(() => {
+        deleteUser(row.Id).then(() => {
+          this.$notify({
+            title: "成功",
+            message: "删除成功",
+            type: "success",
+            duration: 2000,
+          });
+          this.getList();
         });
-        this.getList();
       });
     },
     formatJson(filterVal) {
@@ -317,6 +352,18 @@ export default {
           }
         })
       );
+    },
+    change() {
+      this.$forceUpdate();
+    },
+  },
+  computed: {
+    roleInfo() {
+      return function (roleId) {
+        return this.rolesList.find((f) => f.code === roleId).name;
+      };
+      // console.log(roleId)
+      // console.log(this.rolesList.find((f) => f.code === roleId));
     },
   },
 };
