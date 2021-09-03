@@ -137,7 +137,7 @@
           <el-input v-model="temp.Email" />
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
+      <!-- <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">
           {{ $t("table.cancel") }}
         </el-button>
@@ -147,7 +147,7 @@
         >
           {{ $t("table.confirm") }}
         </el-button>
-      </div>
+      </div> -->
     </el-dialog>
   </div>
 </template>
@@ -302,10 +302,6 @@ export default {
     handleUpdate(row) {
       this.temp = Object.assign({}, row); // copy obj
       console.log(this.rolesList);
-      // let roleName = this.rolesList.find(
-      //   (f) => f.Id === this.temp.RoleId
-      // ).RoleName;
-      // this.temp.RoleName = roleName;
       this.dialogStatus = "update";
       this.dialogFormVisible = true;
       this.$nextTick(() => {
