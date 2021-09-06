@@ -11,9 +11,19 @@ export function getRoutes() {
 
 //获取所有角色信息
 export function getRoles() {
-    return request({
-        baseURL: 'http://localhost:5000',
-        url: '/api/Account/GetRoleList',
-        method: 'get',
-    })
-  }
+  return request({
+    baseURL: 'http://localhost:5000',
+    url: '/api/Account/GetRoleList',
+    method: 'get',
+  })
+}
+
+//获取所有app动态配置菜单
+export function getAppMenus(pageIndex, pageSize) {
+  return request({
+    baseURL: 'http://localhost:5000',
+    url: '/api/Account/GetAllAppMenu',
+    method: 'get',
+    params: { pageIndex, pageSize }
+  })
+}
