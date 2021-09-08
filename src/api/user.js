@@ -29,7 +29,7 @@ export function getUsers(pageIndex, pageSize) {
   })
 }
 
-//添加用户
+//添加或修改用户
 export function addUser(data) {
   return request({
     baseURL: 'http://localhost:5000',

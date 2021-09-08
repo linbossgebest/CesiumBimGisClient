@@ -12,7 +12,7 @@ import chartsRouter from './modules/charts'
 import tableRouter from './modules/table'
 import nestedRouter from './modules/nested'
 
-//自定义组件名称和组件对象的map对象
+//自定义组件名称和组件对象的map对象(新增菜单时需要添加对应映射)
 export const componentMap = {
   'layout': require('@/layout').default,
   'redirect_index': () => import('@/views/redirect/index').then(f => f.default),
@@ -28,6 +28,7 @@ export const componentMap = {
   'appmenu_index':()=>import('@/views/sysmanage/appmenu').then(f => f.default),
   'componentinfo_index':()=>import('@/views/modelcomponent/componentinfo').then(f => f.default),
   'componentmenu_index':()=>import('@/views/modelcomponent/componentmenu').then(f => f.default),
+  'componenttype_index':()=>import('@/views/modelcomponent/componenttype').then(f => f.default),
 }
 
 /**

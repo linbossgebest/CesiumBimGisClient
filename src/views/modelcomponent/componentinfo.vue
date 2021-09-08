@@ -58,15 +58,25 @@
           <span>{{ row.ModelId }}</span>
         </template>
       </el-table-column>
+
       <el-table-column label="状态" width="200px" align="center">
         <template slot-scope="{ row }">
-          <span>{{ row.Status }}</span>
+          <el-tag>
+            <span>{{ row.Status | componentStatusFilter }}</span>
+          </el-tag>
         </template>
       </el-table-column>
 
       <el-table-column label="构件类型" width="200px" align="center">
         <template slot-scope="{ row }">
-          <span>{{ row.ComponentTypeId }}</span>
+          <el-tag>
+            <span>{{ typeInfo(row.ComponentTypeId) }}</span>
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="父节点" width="200px" align="center">
+        <template slot-scope="{ row }">
+          <span>{{ row.ParentId }}</span>
         </template>
       </el-table-column>
 
@@ -100,58 +110,88 @@
       @pagination="getComponetList"
     />
 
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
+    <el-dialog
+      :title="textMap[dialogStatus]"
+      :visible.sync="dialogFormVisible"
+      width="30%"
+    >
       <el-form
         ref="dataForm"
         :rules="rules"
         :model="temp"
         label-position="left"
         label-width="100px"
-        style="width: 400px; margin-left: 50px"
+        style="width: auto; margin-left: 50px"
       >
-        <el-form-item label="用户名称" prop="UserName">
-          <el-input v-model="temp.UserName" />
+        <el-form-item label="构件编号" prop="ComponentId">
+          <el-input
+            v-model="temp.ComponentId"
+            :disabled="textMap[dialogStatus] === '修改构件信息'"
+          />
         </el-form-item>
-        <el-form-item
-          label="用户密码"
-          prop="PassWord"
-          v-if="textMap[dialogStatus] === '创建用户'"
-        >
-          <el-input v-model="temp.PassWord" />
+        <el-form-item label="构件名称" prop="ComponentName">
+          <el-input v-model="temp.ComponentName" />
         </el-form-item>
-        <el-form-item label="用户角色">
+        <el-form-item label="模型编号" prop="ModelId">
+          <el-input v-model="temp.ModelId" />
+        </el-form-item>
+        <el-form-item label="施工状态">
           <el-select
-            v-model="temp.RoleId"
-            :label="temp.RoleName"
+            v-model="temp.Status"
             class="filter-item"
             placeholder="Please select"
-            @change="change()"
           >
             <el-option
-              v-for="item in rolesList"
+              v-for="item in componentStatus"
               :key="item.code"
               :label="item.name"
               :value="item.code"
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="手机号码">
-          <el-input v-model="temp.Mobile" />
+        <el-form-item label="构件类型">
+          <el-select
+            v-model="temp.ComponentTypeId"
+            class="filter-item"
+            placeholder="Please select"
+            @change="change()"
+          >
+            <el-option
+              v-for="item in componentTypeList"
+              :key="item.Id"
+              :label="item.TypeName"
+              :value="item.Id"
+            />
+          </el-select>
         </el-form-item>
-        <el-form-item label="邮箱地址">
-          <el-input v-model="temp.Email" />
+        <el-form-item label="父节点" prop="ParentId">
+          <el-input v-model="temp.ParentId" />
         </el-form-item>
       </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">
+          {{ $t("table.cancel") }}
+        </el-button>
+        <el-button
+          type="primary"
+          @click="dialogStatus === 'create' ? createData() : updateData()"
+        >
+          {{ $t("table.confirm") }}
+        </el-button>
+      </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { parseTime } from "@/utils";
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
-import { getUsers, deleteUser, addUser } from "@/api/user";
-import { getRoles } from "@/api/auth";
-import { getModelComponents } from "@/api/modelcomponent";
+import {
+  getModelComponents,
+  getComponentTypes,
+  addComponentInfo,
+  updateComponentInfo,
+  deleteComponentInfo,
+} from "@/api/modelcomponent";
 import waves from "@/directive/waves"; // waves directive
 
 export default {
@@ -159,11 +199,10 @@ export default {
   components: { Pagination },
   directives: { waves },
   filters: {
-    statusFilter(status) {
+    componentStatusFilter(status) {
       const statusMap = {
-        published: "success",
-        draft: "info",
-        deleted: "danger",
+        0: "施工进行中",
+        1: "施工已完成",
       };
       return statusMap[status];
     },
@@ -174,10 +213,14 @@ export default {
   data() {
     return {
       tableKey: 0,
-      componentId: "",
-      componentName: "",
-      list: null,
-      rolesList: [],
+      componentId: "", //构件编号
+      componentName: "", //构件名称
+      list: null, //展示列表
+      componentTypeList: [], //构件类型列表
+      componentStatus: [
+        { code: 0, name: "施工进行中" },
+        { code: 1, name: "施工已完成" },
+      ],
       total: 0,
       listLoading: true,
       listQuery: {
@@ -185,55 +228,48 @@ export default {
         limit: 20,
       },
       temp: {
-        Id: undefined,
-        UserName: "",
-        RoleId: undefined,
-        RoleName: undefined,
-        PassWord: "",
-        Mobile: "",
-        Email: "",
+        ComponentId: "",
+        ComponentName: "",
+        ModelId: undefined,
+        Status: undefined,
+        ParentId: "",
+        ComponentTypeId: undefined,
       },
       dialogFormVisible: false,
       dialogStatus: "",
       textMap: {
-        update: "修改用户",
-        create: "创建用户",
+        create: "创建构件信息",
+        update: "修改构件信息",
       },
       rules: {
-        RoleId: [
-          { required: true, message: "type is required", trigger: "change" },
+        ComponentId: [
+          { required: true, message: "请输入构件编号", trigger: "blur" },
         ],
-        timestamp: [
+        ComponentName: [
+          { required: true, message: "请输入构件名称", trigger: "blur" },
+        ],
+        ModelId: [
+          { required: true, message: "请输入模型编号", trigger: "blur" },
+        ],
+        ParentId: [
+          { required: true, message: "请输入父节点", trigger: "blur" },
+        ],
+        Status: [
+          { required: true, message: "Status is required", trigger: "change" },
+        ],
+        ComponentTypeId: [
           {
-            type: "date",
             required: true,
-            message: "timestamp is required",
+            message: "ComponentTypeId is required",
             trigger: "change",
           },
         ],
-        title: [
-          { required: true, message: "title is required", trigger: "blur" },
-        ],
-        UserName: [
-          { required: true, message: "请输入用户名称", trigger: "blur" },
-        ],
-        RoleId: [
-          { required: true, message: "请输入角色信息", trigger: "blur" },
-        ],
-        PassWord: [
-          { required: true, message: "请输入用户密码", trigger: "blur" },
-        ],
-        Mobile: [
-          { required: true, message: "请输入用户手机", trigger: "blur" },
-        ],
-        Email: [{ required: true, message: "请输入用户邮箱", trigger: "blur" }],
       },
     };
   },
   created() {
-    // this.getList();
-    // this.getRoleList();
     this.getComponetList();
+    this.getTypes();
   },
   methods: {
     getComponetList() {
@@ -252,26 +288,15 @@ export default {
         this.listLoading = false;
       });
     },
-    getRoleList() {
-      //查询角色
-      getRoles().then((response) => {
-        let data = JSON.parse(response.data);
-        data.items.forEach((item) => {
-          this.rolesList.push({ name: item.RoleName, code: item.Id });
-        });
-      });
-    },
-    getList() {
-      //查询用户
-      this.listLoading = true;
-      getUsers(this.listQuery.page, this.listQuery.limit).then((response) => {
-        let data = JSON.parse(response.data);
+    getTypes() {
+      //查询构件类型
+      getComponentTypes(this.listQuery.page, 10000).then(
+        (response) => {
+          let data = JSON.parse(response.data);
 
-        this.list = data.items;
-        this.total = data.total;
-
-        this.listLoading = false;
-      });
+          this.componentTypeList = data.items;
+        }
+      );
     },
     handleFilter() {
       this.listQuery.page = 1;
@@ -279,13 +304,12 @@ export default {
     },
     resetTemp() {
       this.temp = {
-        Id: undefined,
-        UserName: "",
-        RoleId: 1,
-        RoleName: "admin",
-        PassWord: "",
-        Mobile: "",
-        Email: "",
+        ComponentId: "",
+        ComponentName: "",
+        ModelId: undefined,
+        Status: 0,
+        ParentId: "",
+        ComponentTypeId: 1,
       };
     },
     handleCreate() {
@@ -300,22 +324,24 @@ export default {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
           console.log(this.temp);
-          addUser(this.temp).then(() => {
-            this.dialogFormVisible = false;
-            this.$notify({
-              title: "成功",
-              message: "创建成功",
-              type: "success",
-              duration: 2000,
-            });
-            this.getList();
+          addComponentInfo(this.temp).then((response) => {
+            console.log(response);
+            if (response.isSuccess) {
+              this.dialogFormVisible = false;
+              this.$notify({
+                title: "成功",
+                message: "创建成功",
+                type: "success",
+                duration: 2000,
+              });
+              this.getComponetList();
+            }
           });
         }
       });
     },
     handleUpdate(row) {
       this.temp = Object.assign({}, row); // copy obj
-      console.log(this.rolesList);
       this.dialogStatus = "update";
       this.dialogFormVisible = true;
       this.$nextTick(() => {
@@ -326,7 +352,7 @@ export default {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
-          addUser(tempData).then(() => {
+          updateComponentInfo(tempData).then(() => {
             this.dialogFormVisible = false;
             this.$notify({
               title: "成功",
@@ -334,46 +360,33 @@ export default {
               type: "success",
               duration: 2000,
             });
-            this.getList();
+            this.getComponetList();
           });
         }
       });
     },
     handleDelete(row, index) {
       this.$confirm("请确认是否确认删除？").then(() => {
-        deleteUser(row.Id).then(() => {
+        deleteComponentInfo(row.ComponentId).then(() => {
           this.$notify({
             title: "成功",
             message: "删除成功",
             type: "success",
             duration: 2000,
           });
-          this.getList();
+          this.getComponetList();
         });
       });
-    },
-    formatJson(filterVal) {
-      return this.list.map((v) =>
-        filterVal.map((j) => {
-          if (j === "timestamp") {
-            return parseTime(v[j]);
-          } else {
-            return v[j];
-          }
-        })
-      );
     },
     change() {
       this.$forceUpdate();
     },
   },
   computed: {
-    roleInfo() {
-      return function (roleId) {
-        return this.rolesList.find((f) => f.code === roleId).name;
+    typeInfo() {
+      return function (typeId) {
+        return this.componentTypeList.find((f) => f.Id === typeId).TypeName;
       };
-      // console.log(roleId)
-      // console.log(this.rolesList.find((f) => f.code === roleId));
     },
   },
 };

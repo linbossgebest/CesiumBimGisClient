@@ -137,7 +137,7 @@
           <el-input v-model="temp.Email" />
         </el-form-item>
       </el-form>
-      <!-- <div slot="footer" class="dialog-footer">
+      <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">
           {{ $t("table.cancel") }}
         </el-button>
@@ -147,7 +147,7 @@
         >
           {{ $t("table.confirm") }}
         </el-button>
-      </div> -->
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -163,19 +163,6 @@ export default {
   name: "UserInfo",
   components: { Pagination },
   directives: { waves },
-  filters: {
-    statusFilter(status) {
-      const statusMap = {
-        published: "success",
-        draft: "info",
-        deleted: "danger",
-      };
-      return statusMap[status];
-    },
-    typeFilter(type) {
-      return calendarTypeKeyValue[type];
-    },
-  },
   data() {
     return {
       tableKey: 0,
@@ -203,20 +190,6 @@ export default {
         create: "创建用户",
       },
       rules: {
-        RoleId: [
-          { required: true, message: "type is required", trigger: "change" },
-        ],
-        timestamp: [
-          {
-            type: "date",
-            required: true,
-            message: "timestamp is required",
-            trigger: "change",
-          },
-        ],
-        title: [
-          { required: true, message: "title is required", trigger: "blur" },
-        ],
         UserName: [
           { required: true, message: "请输入用户名称", trigger: "blur" },
         ],

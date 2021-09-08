@@ -27,3 +27,13 @@ export function getAppMenus(pageIndex, pageSize) {
     params: { pageIndex, pageSize }
   })
 }
+
+//根据菜单类型获取app动态配置菜单
+export function getAppMenusByType(type) {
+  return request({
+    baseURL: 'http://localhost:5000',
+    url: '/api/Account/GetAppMenu',
+    method: 'get',
+    params: { type }
+  })
+}
