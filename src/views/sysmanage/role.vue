@@ -62,9 +62,7 @@
         <el-button type="danger" @click="dialogVisible = false">
           取消
         </el-button>
-        <el-button type="primary" @click="confirmRole">
-          确定
-        </el-button>
+        <el-button type="primary" @click="confirmRole"> 确定 </el-button>
       </div>
     </el-dialog>
   </div>
@@ -73,15 +71,7 @@
 <script>
 import path from "path";
 import { deepClone } from "@/utils";
-// import {
-//   getRoutes,
-//   getRoles,
-//   addRole,
-//   deleteRole,
-//   updateRole,
-// } from "@/api/role";
 import { addRole, deleteRole, updateRole } from "@/api/role";
-import i18n from "@/lang";
 import { getRoutes, getRoles } from "@/api/auth";
 
 const defaultRole = {
@@ -117,14 +107,12 @@ export default {
   },
   methods: {
     async getRoutes() {
-      // const res = await getRoutes();
-      // this.serviceRoutes = res.data;
-      // const routes = this.generateRoutes(res.data);
-      // this.routes = this.i18n(routes);
       getRoutes().then((response) => {
         let data = JSON.parse(response.data).menuTree;
         this.serviceRoutes = data;
+        console.log(this.serviceRoutes);
         this.routes = this.generateRoutes(data);
+        console.log(this.routes);
       });
     },
     async getRoles() {
@@ -148,7 +136,12 @@ export default {
           route
         );
 
-        if (route.children && onlyOneShowingChild && !route.alwaysShow) {
+        if (
+          route.children &&
+          route.children.length != 0 &&
+          onlyOneShowingChild &&
+          !route.alwaysShow
+        ) {
           route = onlyOneShowingChild;
         }
 
@@ -157,15 +150,16 @@ export default {
           title: route.meta && route.meta.title,
         };
 
+        console.log(data);
+
         // recursive child routes
-        if (route.children) {
+        if (route.children && route.children.length != 0) {
           data.children = this.generateRoutes(route.children, data.path);
         }
         res.push(data);
       }
-      console.log(res)
+      console.log(res);
       return res;
-      
     },
     generateArr(routes) {
       let data = [];
@@ -178,6 +172,7 @@ export default {
           }
         }
       });
+      console.log(data);
       return data;
     },
     handleAddRole() {
@@ -196,7 +191,6 @@ export default {
       this.$nextTick(() => {
         const routes = this.generateRoutes(this.role.routes);
         this.$refs.tree.setCheckedNodes(this.generateArr(routes));
-        // set checked state of a node not affects its father and child nodes
         this.checkStrictly = false;
       });
     },

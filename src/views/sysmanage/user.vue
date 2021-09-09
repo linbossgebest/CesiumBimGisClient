@@ -48,11 +48,11 @@
           <span>{{ row.UserName }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="角色名称" width="200px" align="center">
+      <!-- <el-table-column label="角色名称" width="200px" align="center">
         <template slot-scope="{ row }">
           <span>{{ roleInfo(row.RoleId) }}</span>
         </template>
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column label="手机号码" width="200px" align="center">
         <template slot-scope="{ row }">
           <span>{{ row.Mobile }}</span>
@@ -115,11 +115,25 @@
           <el-input v-model="temp.PassWord" />
         </el-form-item>
         <el-form-item label="用户角色">
-          <el-select
+          <!-- <el-select
             v-model="temp.RoleId"
             :label="temp.RoleName"
             class="filter-item"
             placeholder="Please select"
+            @change="change()"
+          >
+            <el-option
+              v-for="item in rolesList"
+              :key="item.code"
+              :label="item.name"
+              :value="item.code"
+            />
+          </el-select> -->
+          <el-select
+            v-model="roleIdList"
+            multiple
+            class="filter-item"
+            placeholder="请选择"
             @change="change()"
           >
             <el-option
@@ -158,6 +172,7 @@ import Pagination from "@/components/Pagination"; // secondary package based on 
 import { getUsers, deleteUser, addUser } from "@/api/user";
 import { getRoles } from "@/api/auth";
 import waves from "@/directive/waves"; // waves directive
+import { mapGetters } from "vuex";
 
 export default {
   name: "UserInfo",
@@ -168,6 +183,7 @@ export default {
       tableKey: 0,
       list: null,
       rolesList: [],
+      roleIdList: [],
       total: 0,
       listLoading: true,
       listQuery: {
@@ -182,6 +198,7 @@ export default {
         PassWord: "",
         Mobile: "",
         Email: "",
+        RoleIds: [],
       },
       dialogFormVisible: false,
       dialogStatus: "",
@@ -237,6 +254,7 @@ export default {
       this.getList();
     },
     resetTemp() {
+      this.roleIdList = [];
       this.temp = {
         Id: undefined,
         UserName: "",
@@ -245,6 +263,7 @@ export default {
         PassWord: "",
         Mobile: "",
         Email: "",
+        RoleIds: [],
       };
     },
     handleCreate() {
@@ -273,6 +292,8 @@ export default {
       });
     },
     handleUpdate(row) {
+      // this.roleIdList = this.$store.state.user.roles;
+      // console.log(this.$store.state.user.roles)
       this.temp = Object.assign({}, row); // copy obj
       console.log(this.rolesList);
       this.dialogStatus = "update";
@@ -334,6 +355,7 @@ export default {
       // console.log(roleId)
       // console.log(this.rolesList.find((f) => f.code === roleId));
     },
+    ...mapGetters(["name", "avatar", "roles"]),
   },
 };
 </script>

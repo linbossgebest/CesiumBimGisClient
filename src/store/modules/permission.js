@@ -81,12 +81,17 @@ const actions = {
       return replaceComponent(curr)
     })
 
-    let accessedRoutes
-    if (roles.includes('admin')) {
-      accessedRoutes = myAsyncRoutes || []
-    } else {
-      accessedRoutes = filterAsyncRoutes(myAsyncRoutes, roles)
-    }
+    //根据后端api控制菜单路由显示
+    let accessedRoutes=myAsyncRoutes
+
+    //前端控制菜单路由显示
+    //let accessedRoutes
+    // if (roles.includes('admin')) {
+    //   accessedRoutes = myAsyncRoutes || []
+    // } else {
+    //   accessedRoutes = filterAsyncRoutes(myAsyncRoutes, roles)
+    // }
+
     commit('SET_ROUTES', accessedRoutes)
     return accessedRoutes
   }

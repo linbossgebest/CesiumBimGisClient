@@ -61,6 +61,7 @@ const actions = {
         }
 
         const { roles, name, avatar, introduction } = data
+        console.log(roles)
 
         // roles must be a non-empty array
         if (!roles || roles.length <= 0) {

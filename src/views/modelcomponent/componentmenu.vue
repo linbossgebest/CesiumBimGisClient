@@ -333,12 +333,16 @@ export default {
   computed: {
     typeInfo() {
       return function (typeId) {
-        return this.componentTypeList.find((f) => f.Id === typeId).TypeName;
+        let typeItem = this.componentTypeList.find((f) => f.Id === typeId);
+        let typeName = typeItem == null ? "" : typeItem.TypeName;
+        return typeName;
       };
     },
     menuInfo() {
       return function (appMenuId) {
-        return this.appMenuList.find((f) => f.Id === appMenuId).MenuName;
+        let menuItem = this.appMenuList.find((f) => f.Id === appMenuId);
+        let menuName = menuItem == null ? "" : menuItem.MenuName;
+        return menuName;
       };
     },
   },
