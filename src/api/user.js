@@ -57,4 +57,21 @@ export function logout() {
   })
 }
 
+//获取所有用户角色信息
+export function getUserRoles() {
+  return request({
+    baseURL: 'http://localhost:5000',
+    url: '/api/Account/GetUserRoleList',
+    method: 'get',
+  })
+}
 
+//根据用户编号获取用户角色信息
+export function getUserRolesByUserId(userId) {
+  return request({
+    baseURL: 'http://localhost:5000',
+    url: '/api/Account/GetUserRoleListById',
+    method: 'get',
+    params: { userId }
+  })
+}

@@ -1,5 +1,14 @@
 <template>
   <div class="app-container">
+      <el-button
+        v-waves
+        class="filter-item"
+        type="primary"
+        icon="el-icon-search"
+        @click="handleFilter"
+      >
+        查询
+      </el-button>
     <el-button type="primary" @click="handleAddRole"> 添加角色 </el-button>
 
     <el-table :data="rolesList" style="width: 100%; margin-top: 30px" border>
@@ -32,18 +41,18 @@
 
     <el-dialog
       :visible.sync="dialogVisible"
-      :title="dialogType === 'edit' ? 'Edit Role' : 'New Role'"
+      :title="dialogType === 'edit' ? '创建角色' : '新增角色'"
     >
       <el-form :model="role" label-width="80px" label-position="left">
         <el-form-item label="角色名称">
-          <el-input v-model="role.name" placeholder="Role Name" />
+          <el-input v-model="role.RoleName" placeholder="角色名称" />
         </el-form-item>
         <el-form-item label="角色类型">
           <el-input
-            v-model="role.description"
+            v-model="role.RoleType"
             :autosize="{ minRows: 2, maxRows: 4 }"
             type="textarea"
-            placeholder="Role Description"
+            placeholder="角色类型描述"
           />
         </el-form-item>
         <el-form-item label="菜单">
@@ -106,7 +115,10 @@ export default {
     this.getRoles();
   },
   methods: {
-    async getRoutes() {
+    handleFilter(){
+      this.getRoles();
+    },
+    async getRoutes() {//查询菜单生成菜单树
       getRoutes().then((response) => {
         let data = JSON.parse(response.data).menuTree;
         this.serviceRoutes = data;
@@ -115,7 +127,7 @@ export default {
         console.log(this.routes);
       });
     },
-    async getRoles() {
+    async getRoles() {//查询所有角色信息
       getRoles().then((response) => {
         let data = JSON.parse(response.data);
         this.rolesList = data.items;
@@ -187,10 +199,11 @@ export default {
       this.dialogType = "edit";
       this.dialogVisible = true;
       this.checkStrictly = true;
+      console.log(scope.row)
       this.role = deepClone(scope.row);
       this.$nextTick(() => {
-        const routes = this.generateRoutes(this.role.routes);
-        this.$refs.tree.setCheckedNodes(this.generateArr(routes));
+        // const routes = this.generateRoutes(this.role.routes);
+        // this.$refs.tree.setCheckedNodes(this.generateArr(routes));
         this.checkStrictly = false;
       });
     },

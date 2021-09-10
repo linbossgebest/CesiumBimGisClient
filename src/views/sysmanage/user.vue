@@ -114,23 +114,9 @@
         >
           <el-input v-model="temp.PassWord" />
         </el-form-item>
-        <el-form-item label="用户角色">
-          <!-- <el-select
-            v-model="temp.RoleId"
-            :label="temp.RoleName"
-            class="filter-item"
-            placeholder="Please select"
-            @change="change()"
-          >
-            <el-option
-              v-for="item in rolesList"
-              :key="item.code"
-              :label="item.name"
-              :value="item.code"
-            />
-          </el-select> -->
+        <el-form-item label="用户角色" prop="RoleIds">
           <el-select
-            v-model="roleIdList"
+            v-model="temp.RoleIds"
             multiple
             class="filter-item"
             placeholder="请选择"
@@ -169,10 +155,15 @@
 <script>
 import { parseTime } from "@/utils";
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
-import { getUsers, deleteUser, addUser } from "@/api/user";
+import {
+  getUsers,
+  deleteUser,
+  addUser,
+  getUserRoles,
+  getUserRolesByUserId,
+} from "@/api/user";
 import { getRoles } from "@/api/auth";
 import waves from "@/directive/waves"; // waves directive
-import { mapGetters } from "vuex";
 
 export default {
   name: "UserInfo",
@@ -183,6 +174,7 @@ export default {
       tableKey: 0,
       list: null,
       rolesList: [],
+      useRoleList: [],
       roleIdList: [],
       total: 0,
       listLoading: true,
@@ -210,7 +202,7 @@ export default {
         UserName: [
           { required: true, message: "请输入用户名称", trigger: "blur" },
         ],
-        RoleId: [
+        RoleIds: [
           { required: true, message: "请输入角色信息", trigger: "blur" },
         ],
         PassWord: [
@@ -226,6 +218,7 @@ export default {
   created() {
     this.getList();
     this.getRoleList();
+    //this.getUserRoleList();
   },
   methods: {
     getRoleList() {
@@ -247,6 +240,15 @@ export default {
         this.total = data.total;
 
         this.listLoading = false;
+      });
+    },
+    getUserRoleList() {
+      //查询所有用户角色信息
+      getUserRoles().then((response) => {
+        let data = JSON.parse(response.data);
+        data.items.forEach((item) => {
+          this.useRoleList.push({ UserId: item.UserId, RoleId: item.RoleId });
+        });
       });
     },
     handleFilter() {
@@ -277,7 +279,6 @@ export default {
     createData() {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
-          console.log(this.temp);
           addUser(this.temp).then(() => {
             this.dialogFormVisible = false;
             this.$notify({
@@ -292,20 +293,27 @@ export default {
       });
     },
     handleUpdate(row) {
-      // this.roleIdList = this.$store.state.user.roles;
-      // console.log(this.$store.state.user.roles)
-      this.temp = Object.assign({}, row); // copy obj
-      console.log(this.rolesList);
-      this.dialogStatus = "update";
-      this.dialogFormVisible = true;
-      this.$nextTick(() => {
-        this.$refs["dataForm"].clearValidate();
+      getUserRolesByUserId(row.Id).then((response) => {
+        this.temp = Object.assign({}, row); // copy obj
+        this.temp.RoleIds = [];
+
+        let data = JSON.parse(response.data);
+        data.items.forEach((item) => {
+          this.temp.RoleIds.push(item.RoleId);
+        });
+
+        this.dialogStatus = "update";
+        this.dialogFormVisible = true;
+        this.$nextTick(() => {
+          this.$refs["dataForm"].clearValidate();
+        });
       });
     },
     updateData() {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
+          // tempData.RoleIds = [];
           addUser(tempData).then(() => {
             this.dialogFormVisible = false;
             this.$notify({
@@ -355,7 +363,6 @@ export default {
       // console.log(roleId)
       // console.log(this.rolesList.find((f) => f.code === roleId));
     },
-    ...mapGetters(["name", "avatar", "roles"]),
   },
 };
 </script>
