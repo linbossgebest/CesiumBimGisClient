@@ -1,14 +1,6 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-input
-        v-model="listQuery.title"
-        placeholder="请输入用户名称"
-        style="width: 200px; margin-right: 10px"
-        class="filter-item"
-        @keyup.enter.native="handleFilter"
-      />
-
       <el-button
         v-waves
         class="filter-item"
@@ -30,78 +22,56 @@
     </div>
 
     <el-table
-      :key="tableKey"
-      v-loading="listLoading"
-      :data="list"
-      border
-      fit
-      highlight-current-row
+      :data="menuList"
       style="width: 100%"
+      row-key="id"
+      border
+      :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
     >
-      <el-table-column label="编号" align="center" width="80">
-        <template slot-scope="{ row }">
-          <span>{{ row.Id }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="用户名称" width="200px" align="center">
-        <template slot-scope="{ row }">
-          <span>{{ row.UserName }}</span>
-        </template>
-      </el-table-column>
-      <!-- <el-table-column label="角色名称" width="200px" align="center">
-        <template slot-scope="{ row }">
-          <span>{{ roleInfo(row.RoleId) }}</span>
+      <!-- <el-table-column align="center" label="菜单编号" width="220">
+        <template slot-scope="scope">
+          {{ scope.row.id }}
         </template>
       </el-table-column> -->
-      <el-table-column label="手机号码" width="200px" align="center">
-        <template slot-scope="{ row }">
-          <span>{{ row.Mobile }}</span>
+      <el-table-column align="center" label="菜单名称" width="220">
+        <template slot-scope="scope">
+          {{ scope.row.meta.title }}
+        </template>
+      </el-table-column>
+      <el-table-column align="header-center" label="对应组件">
+        <template slot-scope="scope">
+          {{ scope.row.component }}
+        </template>
+      </el-table-column>
+      <el-table-column align="header-center" label="路由地址">
+        <template slot-scope="scope">
+          {{ scope.row.path }}
         </template>
       </el-table-column>
 
-      <el-table-column label="邮箱地址" width="200px" align="center">
-        <template slot-scope="{ row }">
-          <span>{{ row.Email }}</span>
+      <el-table-column align="center" label="图标" width="220">
+        <template slot-scope="scope">
+          {{ scope.row.meta.icon }}
         </template>
       </el-table-column>
 
-      <el-table-column label="是否启用" width="200px" align="center">
-        <template slot-scope="{ row }">
-          <el-tag>
-          <span>{{ row.IsEnabled | isEnableFilter }}</span>
-          </el-tag>
+      <el-table-column align="header-center" label="排序">
+        <template slot-scope="scope">
+          {{ scope.row.order }}
         </template>
       </el-table-column>
 
-      <el-table-column
-        :label="$t('table.actions')"
-        align="center"
-        width="auto"
-        class-name="small-padding fixed-width"
-      >
-        <template slot-scope="{ row, $index }">
-          <el-button type="primary" size="mini" @click="handleUpdate(row)">
+      <el-table-column align="center" label="操作">
+        <template slot-scope="scope">
+          <el-button type="primary" size="small" @click="handleEdit(scope)">
             编辑
           </el-button>
-          <el-button
-            v-if="row.status != 'deleted'"
-            size="mini"
-            type="danger"
-            @click="handleDelete(row, $index)"
-          >
+          <el-button type="danger" size="small" @click="handleDelete(scope)">
             删除
           </el-button>
         </template>
       </el-table-column>
     </el-table>
-
-    <pagination
-      v-show="total > 0"
-      :total="total"
-      :page.sync="listQuery.page"
-      :limit.sync="listQuery.limit"
-      @pagination="getList"
-    />
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
       <el-form
@@ -112,19 +82,12 @@
         label-width="100px"
         style="width: 400px; margin-left: 50px"
       >
-        <el-form-item label="用户名称" prop="UserName">
-          <el-input v-model="temp.UserName" />
+        <el-form-item label="菜单名称" prop="UserName">
+          <el-input v-model="temp.name" />
         </el-form-item>
-        <el-form-item
-          label="用户密码"
-          prop="PassWord"
-          v-if="textMap[dialogStatus] === '创建用户'"
-        >
-          <el-input v-model="temp.PassWord" />
-        </el-form-item>
-        <el-form-item label="用户角色" prop="RoleIds">
+        <el-form-item label="父级菜单" prop="RoleIds">
           <el-select
-            v-model="temp.RoleIds"
+            v-model="temp.parentid"
             multiple
             class="filter-item"
             placeholder="请选择"
@@ -138,11 +101,29 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="手机号码">
-          <el-input v-model="temp.Mobile" />
+        <el-form-item label="对应组件">
+          <el-input v-model="temp.component" />
         </el-form-item>
-        <el-form-item label="邮箱地址">
-          <el-input v-model="temp.Email" />
+        <el-form-item label="路由地址">
+          <el-input v-model="temp.path" />
+        </el-form-item>
+        <el-form-item label="图标">
+          <el-input v-model="temp.meta.icon" />
+        </el-form-item>
+        <el-form-item label="重定向地址">
+          <el-input v-model="temp.redirect" />
+        </el-form-item>
+        <el-form-item label="排序编号">
+          <el-input v-model="temp.order" />
+        </el-form-item>
+        <el-form-item label="根菜单显示">
+          <el-switch v-model="temp.alwaysShow"></el-switch>
+        </el-form-item>
+        <el-form-item label="是否隐藏">
+          <el-switch v-model="temp.hidden"></el-switch>
+        </el-form-item>
+        <el-form-item label="是否缓存">
+          <el-switch v-model="temp.noCache"></el-switch>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -162,7 +143,6 @@
 
 <script>
 import { parseTime } from "@/utils";
-import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
 import {
   getUsers,
   deleteUser,
@@ -170,12 +150,11 @@ import {
   getUserRoles,
   getUserRolesByUserId,
 } from "@/api/user";
-import { getRoles } from "@/api/auth";
+import { getRoutes } from "@/api/auth";
 import waves from "@/directive/waves"; // waves directive
 
 export default {
-  name: "UserInfo",
-  components: { Pagination },
+  name: "MenuInfo",
   directives: { waves },
   filters: {
     isEnableFilter(status) {
@@ -188,11 +167,8 @@ export default {
   },
   data() {
     return {
+      menuList: [],
       tableKey: 0,
-      list: null,
-      rolesList: [],
-      useRoleList: [],
-      roleIdList: [],
       total: 0,
       listLoading: true,
       listQuery: {
@@ -200,20 +176,32 @@ export default {
         limit: 20,
       },
       temp: {
-        Id: undefined,
-        UserName: "",
-        RoleId: undefined,
-        RoleName: undefined,
-        PassWord: "",
-        Mobile: "",
-        Email: "",
-        RoleIds: [],
+        id: undefined,
+        name: "",
+        parentid: undefined,
+        path: "",
+        redirect: "",
+        hidden: false,
+        component: "",
+        alwaysShow: false,
+        order: undefined,
+        meta: {
+          id: undefined,
+          menuid: undefined,
+          noCache: false,
+          roles: "",
+          title: "",
+          activeMenu: "",
+          affix: false,
+          breadcrumb: true,
+          icon: "",
+        },
       },
       dialogFormVisible: false,
       dialogStatus: "",
       textMap: {
-        update: "修改用户",
-        create: "创建用户",
+        create: "新增菜单",
+        update: "修改菜单",
       },
       rules: {
         UserName: [
@@ -233,57 +221,37 @@ export default {
     };
   },
   created() {
-    this.getList();
-    this.getRoleList();
-    //this.getUserRoleList();
+    this.getRoutes();
   },
   methods: {
-    getRoleList() {
-      //查询角色
-      getRoles().then((response) => {
-        let data = JSON.parse(response.data);
-        data.items.forEach((item) => {
-          this.rolesList.push({ name: item.RoleName, code: item.Id });
-        });
-      });
-    },
-    getList() {
-      //查询用户
-      this.listLoading = true;
-      getUsers(this.listQuery.page, this.listQuery.limit).then((response) => {
-        let data = JSON.parse(response.data);
-
-        this.list = data.items;
-        this.total = data.total;
-
-        this.listLoading = false;
-      });
-    },
-    getUserRoleList() {
-      //查询所有用户角色信息
-      getUserRoles().then((response) => {
-        let data = JSON.parse(response.data);
-        data.items.forEach((item) => {
-          this.useRoleList.push({ UserId: item.UserId, RoleId: item.RoleId });
-        });
+    getRoutes() {
+      //查询菜单生成菜单树
+      getRoutes().then((response) => {
+        let data = JSON.parse(response.data).menuTree;
+        this.menuList = data;
+        console.log(data);
+        // this.serviceRoutes = data;
+        // console.log(this.serviceRoutes);
+        // this.routes = this.generateRoutes(data);
+        // console.log(this.routes);
       });
     },
     handleFilter() {
       this.listQuery.page = 1;
-      this.getList();
+      this.getRoutes();
     },
     resetTemp() {
-      this.roleIdList = [];
-      this.temp = {
-        Id: undefined,
-        UserName: "",
-        RoleId: 1,
-        RoleName: "admin",
-        PassWord: "",
-        Mobile: "",
-        Email: "",
-        RoleIds: [],
-      };
+    //   this.roleIdList = [];
+    //   this.temp = {
+    //     Id: undefined,
+    //     UserName: "",
+    //     RoleId: 1,
+    //     RoleName: "admin",
+    //     PassWord: "",
+    //     Mobile: "",
+    //     Email: "",
+    //     RoleIds: [],
+    //   };
     },
     handleCreate() {
       this.resetTemp();
@@ -383,3 +351,7 @@ export default {
   },
 };
 </script>
+
+
+<style scoped>
+</style>

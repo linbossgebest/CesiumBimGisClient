@@ -1,14 +1,14 @@
 <template>
   <div class="app-container">
-      <el-button
-        v-waves
-        class="filter-item"
-        type="primary"
-        icon="el-icon-search"
-        @click="handleFilter"
-      >
-        查询
-      </el-button>
+    <el-button
+      v-waves
+      class="filter-item"
+      type="primary"
+      icon="el-icon-search"
+      @click="handleFilter"
+    >
+      查询
+    </el-button>
     <el-button type="primary" @click="handleAddRole"> 添加角色 </el-button>
 
     <el-table :data="rolesList" style="width: 100%; margin-top: 30px" border>
@@ -27,7 +27,7 @@
           {{ scope.row.RoleType }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Operations">
+      <el-table-column align="center" label="操作">
         <template slot-scope="scope">
           <el-button type="primary" size="small" @click="handleEdit(scope)">
             编辑
@@ -41,7 +41,7 @@
 
     <el-dialog
       :visible.sync="dialogVisible"
-      :title="dialogType === 'edit' ? '创建角色' : '新增角色'"
+      :title="dialogType === 'edit' ? '修改角色' : '新增角色'"
     >
       <el-form :model="role" label-width="80px" label-position="left">
         <el-form-item label="角色名称">
@@ -80,17 +80,24 @@
 <script>
 import path from "path";
 import { deepClone } from "@/utils";
-import { addRole, deleteRole, updateRole } from "@/api/role";
-import { getRoutes, getRoles } from "@/api/auth";
+import {
+  getRoutes,
+  getRoles,
+  getRoutesByRole,
+  addRole,
+  deleteRole,
+} from "@/api/auth";
+import waves from "@/directive/waves"; // waves directive
 
 const defaultRole = {
-  Id: "",
+  Id: undefined,
   RoleName: "",
   RoleType: "",
   routes: [],
 };
 
 export default {
+  directives: { waves },
   data() {
     return {
       role: Object.assign({}, defaultRole),
@@ -103,6 +110,7 @@ export default {
         children: "children",
         label: "title",
       },
+      SysRoleMenus: [],
     };
   },
   computed: {
@@ -115,10 +123,11 @@ export default {
     this.getRoles();
   },
   methods: {
-    handleFilter(){
+    handleFilter() {
       this.getRoles();
     },
-    async getRoutes() {//查询菜单生成菜单树
+    async getRoutes() {
+      //查询菜单生成菜单树
       getRoutes().then((response) => {
         let data = JSON.parse(response.data).menuTree;
         this.serviceRoutes = data;
@@ -127,7 +136,8 @@ export default {
         console.log(this.routes);
       });
     },
-    async getRoles() {//查询所有角色信息
+    async getRoles() {
+      //查询所有角色信息
       getRoles().then((response) => {
         let data = JSON.parse(response.data);
         this.rolesList = data.items;
@@ -199,31 +209,34 @@ export default {
       this.dialogType = "edit";
       this.dialogVisible = true;
       this.checkStrictly = true;
-      console.log(scope.row)
+      console.log(scope.row);
       this.role = deepClone(scope.row);
-      this.$nextTick(() => {
-        // const routes = this.generateRoutes(this.role.routes);
-        // this.$refs.tree.setCheckedNodes(this.generateArr(routes));
-        this.checkStrictly = false;
+      console.log(this.role);
+
+      getRoutesByRole(this.role.Id).then((response) => {
+        let data = JSON.parse(response.data).menuTree;
+        this.role.routes = data;
+        this.$nextTick(() => {
+          console.log(routes);
+          const routes = this.generateRoutes(this.role.routes);
+          console.log(routes);
+          this.$refs.tree.setCheckedNodes(this.generateArr(routes));
+          this.checkStrictly = false;
+        });
       });
     },
     handleDelete({ $index, row }) {
-      this.$confirm("Confirm to remove the role?", "Warning", {
-        confirmButtonText: "Confirm",
-        cancelButtonText: "Cancel",
-        type: "warning",
-      })
-        .then(async () => {
-          await deleteRole(row.key);
-          this.rolesList.splice($index, 1);
-          this.$message({
+      this.$confirm("请确认是否确认删除？").then(() => {
+        deleteRole(row.Id).then(() => {
+          this.$notify({
+            title: "成功",
+            message: "删除成功",
             type: "success",
-            message: "Delete succed!",
+            duration: 2000,
           });
-        })
-        .catch((err) => {
-          console.error(err);
+          this.getRoles();
         });
+      });
     },
     generateTree(routes, basePath = "/", checkedKeys) {
       const res = [];
@@ -250,8 +263,6 @@ export default {
       return res;
     },
     async confirmRole() {
-      const isEdit = this.dialogType === "edit";
-
       const checkedKeys = this.$refs.tree.getCheckedKeys();
       this.role.routes = this.generateTree(
         deepClone(this.serviceRoutes),
@@ -259,31 +270,25 @@ export default {
         checkedKeys
       );
 
-      if (isEdit) {
-        await updateRole(this.role.key, this.role);
-        for (let index = 0; index < this.rolesList.length; index++) {
-          if (this.rolesList[index].key === this.role.key) {
-            this.rolesList.splice(index, 1, Object.assign({}, this.role));
-            break;
-          }
-        }
-      } else {
-        const { data } = await addRole(this.role);
-        this.role.key = data.key;
-        this.rolesList.push(this.role);
-      }
+      console.log(this.role.routes);
+      // let res = this.generateRoleMenus(this.role.Id, this.role.routes);
+      // console.log(res);
+      this.role.SysRoleMenus = this.generateRoleMenus(
+        this.role.Id,
+        this.role.routes
+      );
 
-      const { description, key, name } = this.role;
-      this.dialogVisible = false;
-      this.$notify({
-        title: "Success",
-        dangerouslyUseHTMLString: true,
-        message: `
-            <div>Role Key: ${key}</div>
-            <div>Role Name: ${name}</div>
-            <div>Description: ${description}</div>
-          `,
-        type: "success",
+      console.log(this.role);
+
+      addRole(this.role).then(() => {
+        this.dialogVisible = false;
+        this.$notify({
+          title: "成功",
+          message: "创建修改成功",
+          type: "success",
+          duration: 2000,
+        });
+        this.getRoles();
       });
     },
     // reference: src/view/layout/components/Sidebar/SidebarItem.vue
@@ -305,6 +310,16 @@ export default {
       }
 
       return false;
+    },
+    generateRoleMenus(roleId, routes) {
+      for (let index = 0; index < routes.length; index++) {
+        this.SysRoleMenus.push({ RoleId: roleId, MenuId: routes[index].id });
+        if (routes[index].children && routes[index].children.length != 0) {
+          this.generateRoleMenus(roleId, routes[index].children);
+        }
+      }
+
+      return this.SysRoleMenus;
     },
   },
 };

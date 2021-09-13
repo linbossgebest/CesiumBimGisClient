@@ -1,5 +1,5 @@
 import { asyncRoutes, constantRoutes, componentMap } from '@/router'
-import { getRoutes } from '@/api/auth'
+import { getRoutes,getRoutesByRole } from '@/api/auth'
 
 /**
  * Use meta.role to determine if the current user has permission
@@ -69,7 +69,8 @@ function replaceComponent(comp) {
 const actions = {
   async generateRoutes({ commit }, roles) {
     //从后台接口请求所有路由信息
-    let res = await getRoutes()
+    //let res = await getRoutes()
+    let res = await getRoutesByRole(roles[0])
     // console.log(res)
     let myAsyncRoutes =JSON.parse(res.data).menuTree
 
@@ -80,7 +81,7 @@ const actions = {
       }
       return replaceComponent(curr)
     })
-
+    console.log(myAsyncRoutes)
     //根据后端api控制菜单路由显示
     let accessedRoutes=myAsyncRoutes
 

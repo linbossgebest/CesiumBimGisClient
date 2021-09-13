@@ -25,6 +25,7 @@ export const componentMap = {
   'icon_index': () => import('@/views/icons/index').then(f => f.default),
   'user_index': () => import('@/views/sysmanage/user').then(f => f.default),
   'role_index': () => import('@/views/sysmanage/role').then(f => f.default),
+  'menu_index':()=>import('@/views/sysmanage/menu').then(f => f.default),
   'appmenu_index':()=>import('@/views/sysmanage/appmenu').then(f => f.default),
   'componentinfo_index':()=>import('@/views/modelcomponent/componentinfo').then(f => f.default),
   'componentmenu_index':()=>import('@/views/modelcomponent/componentmenu').then(f => f.default),
