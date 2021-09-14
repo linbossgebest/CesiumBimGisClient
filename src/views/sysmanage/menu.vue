@@ -82,10 +82,10 @@
         label-width="100px"
         style="width: 400px; margin-left: 50px"
       >
-        <el-form-item label="菜单名称" prop="UserName">
+        <el-form-item label="菜单名称" prop="MenuName">
           <el-input v-model="temp.name" />
         </el-form-item>
-        <el-form-item label="父级菜单" prop="RoleIds">
+        <el-form-item label="父级菜单" prop="ParentId">
           <el-select
             v-model="temp.parentid"
             multiple
@@ -113,7 +113,7 @@
         <el-form-item label="重定向地址">
           <el-input v-model="temp.redirect" />
         </el-form-item>
-        <el-form-item label="排序编号">
+        <el-form-item label="排序编号" prop="OrderNo">
           <el-input v-model="temp.order" />
         </el-form-item>
         <el-form-item label="根菜单显示">
@@ -142,15 +142,7 @@
 </template>
 
 <script>
-import { parseTime } from "@/utils";
-import {
-  getUsers,
-  deleteUser,
-  addUser,
-  getUserRoles,
-  getUserRolesByUserId,
-} from "@/api/user";
-import { getRoutes } from "@/api/auth";
+import { getRoutes,addMenu,deleteMenu } from "@/api/auth";
 import waves from "@/directive/waves"; // waves directive
 
 export default {
@@ -204,19 +196,15 @@ export default {
         update: "修改菜单",
       },
       rules: {
-        UserName: [
-          { required: true, message: "请输入用户名称", trigger: "blur" },
+        MenuName: [
+          { required: true, message: "请输菜单名称", trigger: "blur" },
         ],
-        RoleIds: [
-          { required: true, message: "请输入角色信息", trigger: "blur" },
+        ParentId: [
+          { required: true, message: "请选择父菜单信息", trigger: "blur" },
         ],
-        PassWord: [
-          { required: true, message: "请输入用户密码", trigger: "blur" },
+        OrderNo: [
+          { required: true, message: "请输入排序编号", trigger: "blur" },
         ],
-        Mobile: [
-          { required: true, message: "请输入用户手机", trigger: "blur" },
-        ],
-        Email: [{ required: true, message: "请输入用户邮箱", trigger: "blur" }],
       },
     };
   },
@@ -230,10 +218,6 @@ export default {
         let data = JSON.parse(response.data).menuTree;
         this.menuList = data;
         console.log(data);
-        // this.serviceRoutes = data;
-        // console.log(this.serviceRoutes);
-        // this.routes = this.generateRoutes(data);
-        // console.log(this.routes);
       });
     },
     handleFilter() {
@@ -242,16 +226,28 @@ export default {
     },
     resetTemp() {
     //   this.roleIdList = [];
-    //   this.temp = {
-    //     Id: undefined,
-    //     UserName: "",
-    //     RoleId: 1,
-    //     RoleName: "admin",
-    //     PassWord: "",
-    //     Mobile: "",
-    //     Email: "",
-    //     RoleIds: [],
-    //   };
+      this.temp = {
+       id: undefined,
+        name: "",
+        parentid: undefined,
+        path: "",
+        redirect: "",
+        hidden: false,
+        component: "",
+        alwaysShow: false,
+        order: undefined,
+        meta: {
+          id: undefined,
+          menuid: undefined,
+          noCache: false,
+          roles: "",
+          title: "",
+          activeMenu: "",
+          affix: false,
+          breadcrumb: true,
+          icon: "",
+        },
+      };
     },
     handleCreate() {
       this.resetTemp();
@@ -264,7 +260,7 @@ export default {
     createData() {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
-          addUser(this.temp).then(() => {
+          addMenu(this.temp).then(() => {
             this.dialogFormVisible = false;
             this.$notify({
               title: "成功",
@@ -272,34 +268,26 @@ export default {
               type: "success",
               duration: 2000,
             });
-            this.getList();
+            this.getRoutes();
           });
         }
       });
     },
     handleUpdate(row) {
-      getUserRolesByUserId(row.Id).then((response) => {
         this.temp = Object.assign({}, row); // copy obj
-        this.temp.RoleIds = [];
-
-        let data = JSON.parse(response.data);
-        data.items.forEach((item) => {
-          this.temp.RoleIds.push(item.RoleId);
-        });
-
         this.dialogStatus = "update";
         this.dialogFormVisible = true;
         this.$nextTick(() => {
           this.$refs["dataForm"].clearValidate();
         });
-      });
+    
     },
     updateData() {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
           // tempData.RoleIds = [];
-          addUser(tempData).then(() => {
+          addMenu(tempData).then(() => {
             this.dialogFormVisible = false;
             this.$notify({
               title: "成功",
@@ -307,47 +295,29 @@ export default {
               type: "success",
               duration: 2000,
             });
-            this.getList();
+            this.getRoutes();
           });
         }
       });
     },
     handleDelete(row, index) {
       this.$confirm("请确认是否确认删除？").then(() => {
-        deleteUser(row.Id).then(() => {
+        deleteMenu(row.Id).then(() => {
           this.$notify({
             title: "成功",
             message: "删除成功",
             type: "success",
             duration: 2000,
           });
-          this.getList();
+          this.getRoutes();
         });
       });
-    },
-    formatJson(filterVal) {
-      return this.list.map((v) =>
-        filterVal.map((j) => {
-          if (j === "timestamp") {
-            return parseTime(v[j]);
-          } else {
-            return v[j];
-          }
-        })
-      );
     },
     change() {
       this.$forceUpdate();
     },
   },
   computed: {
-    roleInfo() {
-      return function (roleId) {
-        return this.rolesList.find((f) => f.code === roleId).name;
-      };
-      // console.log(roleId)
-      // console.log(this.rolesList.find((f) => f.code === roleId));
-    },
   },
 };
 </script>

@@ -19,6 +19,26 @@ export function getRoutesByRole(roleId) {
   })
 }
 
+//添加或修改菜单信息
+export function addMenu(data) {
+  return request({
+    baseURL: 'http://localhost:5000',
+    url: '/api/Account/AddMenu',
+    method: 'post',
+    data
+  })
+}
+
+//根据角色id删除菜单信息
+export function deleteMenu(menuId) {
+  return request({
+    baseURL: 'http://localhost:5000',
+    url: '/api/Account/DeleteMenu',
+    method: 'get',
+    params: { menuId }
+  })
+}
+
 
 //获取所有角色信息
 export function getRoles() {
