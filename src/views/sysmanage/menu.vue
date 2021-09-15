@@ -35,7 +35,7 @@
       </el-table-column> -->
       <el-table-column align="center" label="菜单名称" width="220">
         <template slot-scope="scope">
-          {{ scope.row.meta.title }}
+          {{ scope.row.name }}
         </template>
       </el-table-column>
       <el-table-column align="header-center" label="对应组件">
@@ -63,7 +63,7 @@
 
       <el-table-column align="center" label="操作">
         <template slot-scope="scope">
-          <el-button type="primary" size="small" @click="handleEdit(scope)">
+          <el-button type="primary" size="small" @click="handleUpdate(scope)">
             编辑
           </el-button>
           <el-button type="danger" size="small" @click="handleDelete(scope)">
@@ -73,33 +73,30 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
+    <el-dialog
+      :title="textMap[dialogStatus]"
+      :visible.sync="dialogFormVisible"
+      width="30%"
+    >
       <el-form
         ref="dataForm"
         :rules="rules"
         :model="temp"
         label-position="left"
         label-width="100px"
-        style="width: 400px; margin-left: 50px"
+        style="width: auto; margin-left: 50px"
       >
         <el-form-item label="菜单名称" prop="MenuName">
           <el-input v-model="temp.name" />
         </el-form-item>
         <el-form-item label="父级菜单" prop="ParentId">
-          <el-select
-            v-model="temp.parentid"
-            multiple
-            class="filter-item"
-            placeholder="请选择"
-            @change="change()"
-          >
-            <el-option
-              v-for="item in rolesList"
-              :key="item.code"
-              :label="item.name"
-              :value="item.code"
-            />
-          </el-select>
+          <el-cascader
+            v-model="selectedOptions"
+            :key="cascaderkey"
+            :options="menus"
+            :props="{ value: 'id', label: 'name', checkStrictly: true }"
+            clearable
+          ></el-cascader>
         </el-form-item>
         <el-form-item label="对应组件">
           <el-input v-model="temp.component" />
@@ -142,7 +139,7 @@
 </template>
 
 <script>
-import { getRoutes,addMenu,deleteMenu } from "@/api/auth";
+import { getRoutes, addMenu, deleteMenu } from "@/api/auth";
 import waves from "@/directive/waves"; // waves directive
 
 export default {
@@ -159,7 +156,10 @@ export default {
   },
   data() {
     return {
+      cascaderkey:1,
       menuList: [],
+      menus:[],
+      selectedOptions: [],
       tableKey: 0,
       total: 0,
       listLoading: true,
@@ -217,7 +217,12 @@ export default {
       getRoutes().then((response) => {
         let data = JSON.parse(response.data).menuTree;
         this.menuList = data;
-        console.log(data);
+        // this.menus.concat(data);
+        let m={'id':0,'name':'顶级菜单'}
+        m.children=data;
+       this.menus.push(m);
+       this.cascaderkey++;
+        console.log( this.menus);
       });
     },
     handleFilter() {
@@ -225,9 +230,9 @@ export default {
       this.getRoutes();
     },
     resetTemp() {
-    //   this.roleIdList = [];
+      //   this.roleIdList = [];
       this.temp = {
-       id: undefined,
+        id: undefined,
         name: "",
         parentid: undefined,
         path: "",
@@ -274,13 +279,14 @@ export default {
       });
     },
     handleUpdate(row) {
-        this.temp = Object.assign({}, row); // copy obj
-        this.dialogStatus = "update";
-        this.dialogFormVisible = true;
-        this.$nextTick(() => {
-          this.$refs["dataForm"].clearValidate();
-        });
-    
+      this.temp = Object.assign({}, row.row); // copy obj
+      this.selectedOptions=[this.temp.parentid];
+      console.log(this.selectedOptions);
+      this.dialogStatus = "update";
+      this.dialogFormVisible = true;
+      this.$nextTick(() => {
+        this.$refs["dataForm"].clearValidate();
+      });
     },
     updateData() {
       this.$refs["dataForm"].validate((valid) => {
@@ -317,8 +323,7 @@ export default {
       this.$forceUpdate();
     },
   },
-  computed: {
-  },
+  computed: {},
 };
 </script>
 

@@ -1,9 +1,16 @@
 import request from '@/utils/request'
 
+//获取所有菜单信息
+export function getMenuList() {
+  return request({
+    url: '/api/Account/GetMenuInfo',
+    method: 'get',
+  })
+}
+
 //获取菜单路由信息(tree)
 export function getRoutes() {
   return request({
-    baseURL: 'http://localhost:5000',
     url: '/api/Account/GetMenuTree',
     method: 'get',
   })
@@ -12,7 +19,6 @@ export function getRoutes() {
 //根据角色id获取菜单路由信息(tree)
 export function getRoutesByRole(roleId) {
   return request({
-    baseURL: 'http://localhost:5000',
     url: '/api/Account/GetMenuTreeByRole',
     method: 'get',
     params: { roleId }
@@ -22,7 +28,6 @@ export function getRoutesByRole(roleId) {
 //添加或修改菜单信息
 export function addMenu(data) {
   return request({
-    baseURL: 'http://localhost:5000',
     url: '/api/Account/AddMenu',
     method: 'post',
     data
@@ -32,7 +37,6 @@ export function addMenu(data) {
 //根据角色id删除菜单信息
 export function deleteMenu(menuId) {
   return request({
-    baseURL: 'http://localhost:5000',
     url: '/api/Account/DeleteMenu',
     method: 'get',
     params: { menuId }
@@ -43,7 +47,6 @@ export function deleteMenu(menuId) {
 //获取所有角色信息
 export function getRoles() {
   return request({
-    baseURL: 'http://localhost:5000',
     url: '/api/Account/GetRoleList',
     method: 'get',
   })
@@ -52,7 +55,6 @@ export function getRoles() {
 //添加或修改角色信息
 export function addRole(data) {
   return request({
-    baseURL: 'http://localhost:5000',
     url: '/api/Account/AddRole',
     method: 'post',
     data
@@ -62,7 +64,6 @@ export function addRole(data) {
 //根据角色id删除角色
 export function deleteRole(roleId) {
   return request({
-    baseURL: 'http://localhost:5000',
     url: '/api/Account/DeleteRole',
     method: 'get',
     params: { roleId }
@@ -73,7 +74,6 @@ export function deleteRole(roleId) {
 //获取所有app动态配置菜单
 export function getAppMenus(pageIndex, pageSize) {
   return request({
-    baseURL: 'http://localhost:5000',
     url: '/api/Account/GetAllAppMenu',
     method: 'get',
     params: { pageIndex, pageSize }
@@ -83,7 +83,6 @@ export function getAppMenus(pageIndex, pageSize) {
 //根据菜单类型获取app动态配置菜单
 export function getAppMenusByType(type) {
   return request({
-    baseURL: 'http://localhost:5000',
     url: '/api/Account/GetAppMenu',
     method: 'get',
     params: { type }

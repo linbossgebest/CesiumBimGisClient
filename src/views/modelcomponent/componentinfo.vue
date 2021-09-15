@@ -32,6 +32,30 @@
       >
         添加
       </el-button>
+      <el-button
+        class="filter-item"
+        style="margin-left: 10px"
+        type="primary"
+        icon="el-icon-download"
+        @click="downloadExcel"
+      >
+        下载模板文件
+      </el-button>
+
+      <div>
+        <el-upload
+          class="filter-item"
+          action="http://localhost:5000/api/ModelComponent/UploadComponentsExcel"
+          :file-list="fileList"
+          :on-change="handleUploadChange"
+          :on-success="handleUploadSuccess"
+          :before-upload="beforeUpload"
+        >
+          <el-button type="primary" icon="el-icon-upload2"
+            >导入构件信息</el-button
+          >
+        </el-upload>
+      </div>
     </div>
 
     <el-table
@@ -193,6 +217,7 @@ import {
   deleteComponentInfo,
 } from "@/api/modelcomponent";
 import waves from "@/directive/waves"; // waves directive
+// import fileUrl from "@/assets/template/component.xlsx"
 
 export default {
   name: "ComponentInfo",
@@ -212,6 +237,7 @@ export default {
   },
   data() {
     return {
+      fileList: [],
       tableKey: 0,
       componentId: "", //构件编号
       componentName: "", //构件名称
@@ -290,13 +316,11 @@ export default {
     },
     getTypes() {
       //查询构件类型
-      getComponentTypes(this.listQuery.page, 10000).then(
-        (response) => {
-          let data = JSON.parse(response.data);
+      getComponentTypes(this.listQuery.page, 10000).then((response) => {
+        let data = JSON.parse(response.data);
 
-          this.componentTypeList = data.items;
-        }
-      );
+        this.componentTypeList = data.items;
+      });
     },
     handleFilter() {
       this.listQuery.page = 1;
@@ -380,6 +404,35 @@ export default {
     },
     change() {
       this.$forceUpdate();
+    },
+    beforeUpload(file) {
+      const fileType = file.name.substring(file.name.lastIndexOf("."));
+      if (
+        fileType.toLowerCase() != ".xlsx" &&
+        fileType.toLowerCase() != ".xls"
+      ) {
+        this.$message.error("文件必须为.txt或.xml类型");
+        this.fileList = [];
+        return false;
+      }
+    },
+    // 限制文件上传的个数只有一个，获取上传列表的最后一个
+    handleUploadChange(file, fileList) {
+      if (fileList.length > 0) {
+        this.fileList = [fileList[fileList.length - 1]]; // 这一步，是 展示最后一次选择的文件
+      }
+    },
+    handleUploadSuccess() {
+      this.$notify({
+        title: "成功",
+        message: "上传文件成功",
+        type: "success",
+        duration: 2000,
+      });
+      this.getComponetList();
+    },
+    downloadExcel() {
+      window.open("./template/component.xlsx", "_self");
     },
   },
   computed: {
