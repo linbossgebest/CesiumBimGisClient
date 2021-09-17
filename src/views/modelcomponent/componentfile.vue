@@ -135,11 +135,23 @@
         <el-form-item label="构件编号" prop="ComponentId">
           <el-input v-model="temp.ComponentId" />
         </el-form-item>
-        <el-form-item label="文件名称" prop="FileName">
+        <!-- <el-form-item label="文件名称" prop="FileName">
           <el-input v-model="temp.FileName" />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="菜单名称" prop="MenuName">
-          <el-input v-model="temp.MenuName" />
+          <el-select
+            v-model="temp.MenuName"
+            class="filter-item"
+            placeholder="Please select"
+            @change="change()"
+          >
+            <el-option
+              v-for="item in menuList"
+              :key="item.CustomMenuName"
+              :label="item.CustomMenuName"
+              :value="item.CustomMenuName"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -163,6 +175,8 @@ import {
   getComponentFiles,
   deleteComponentFile,
   uploadComponentFile,
+  updateComponentFile,
+  getComponentFileMenus,
 } from "@/api/modelcomponent";
 import waves from "@/directive/waves"; // waves directive
 // import fileUrl from "@/assets/template/component.xlsx"
@@ -174,6 +188,7 @@ export default {
   data() {
     return {
       fileList: [],
+      menuList: [],
       tableKey: 0,
       componentId: "", //构件编号
       modelId: undefined,
@@ -195,7 +210,7 @@ export default {
       dialogStatus: "",
       textMap: {
         create: "创建构件信息",
-        update: "修改构件信息",
+        update: "修改构件文件信息",
       },
       rules: {
         ModelId: [
@@ -237,17 +252,27 @@ export default {
     },
     handleUpdate(row) {
       this.temp = Object.assign({}, row); // copy obj
-      this.dialogStatus = "update";
-      this.dialogFormVisible = true;
-      this.$nextTick(() => {
-        this.$refs["dataForm"].clearValidate();
+      getComponentFileMenus(this.temp.ComponentId).then((response) => {
+        let data = JSON.parse(response.data);
+        this.menuList = data.items;
+        // console.log(data.items)
+        // data.items.map(element => {
+        //   this.menuList.push(element.CustomMenuName)
+        // });
+        // console.log(this.menuList)
+        this.dialogStatus = "update";
+        this.dialogFormVisible = true;
+        this.$nextTick(() => {
+          this.$refs["dataForm"].clearValidate();
+        });
       });
     },
     updateData() {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
-          updateComponentInfo(tempData).then(() => {
+          console.log(tempData);
+          updateComponentFile(tempData).then(() => {
             this.dialogFormVisible = false;
             this.$notify({
               title: "成功",
@@ -255,7 +280,7 @@ export default {
               type: "success",
               duration: 2000,
             });
-            this.getComponetList();
+            this.getComponentFileList();
           });
         }
       });
@@ -277,8 +302,8 @@ export default {
       this.$forceUpdate();
     },
     uploadFile(param) {
-      if (this.componentId === "") {
-        this.$confirm("上传文件，构件编号不能为空").then();
+      if (this.componentId === "" || this.modelId === undefined) {
+        this.$confirm("上传文件，构件编号和模型编号不能为空").then();
       } else {
         let formData = new FormData();
 

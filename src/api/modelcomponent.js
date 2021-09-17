@@ -101,7 +101,7 @@ export function uploadComponents() {
   })
 }
 
-//获取构件对应文件信息(模糊查询)
+//获取构件对应文件信息
 export function getComponentFiles(pageIndex, pageSize, componentId) {
   return request({
     url: '/api/ModelComponent/GetComponentFiles',
@@ -126,5 +126,23 @@ export function uploadComponentFile(data, modelId, componentId) {
     //  url: '/api/ModelComponent/UploadComponentFile',
     method: 'post',
     data
+  })
+}
+
+//修改构件对应文件信息
+export function updateComponentFile(data) {
+  return request({
+    url: '/api/ModelComponent/UpdateComponentFile',
+    method: 'post',
+    data
+  })
+}
+
+//(模型构件文件信息)根据构件编号获取菜单list
+export function getComponentFileMenus(componentId) {
+  return request({
+    url: '/api/ModelComponent/GetComponentDataSourceByComponentId',
+    method: 'get',
+    params: { componentId }
   })
 }
