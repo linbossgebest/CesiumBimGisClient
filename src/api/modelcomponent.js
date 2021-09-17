@@ -2,11 +2,11 @@ import request from '@/utils/request'
 
 
 //获取所有模型构件
-export function getModelComponents(componentId,componentName,pageIndex, pageSize) {
+export function getModelComponents(componentId, componentName, pageIndex, pageSize) {
   return request({
     url: '/api/ModelComponent/GetComponents',
     method: 'get',
-    params: { componentId,componentName,pageIndex, pageSize }
+    params: { componentId, componentName, pageIndex, pageSize }
   })
 }
 
@@ -98,5 +98,33 @@ export function uploadComponents() {
   return request({
     url: '/api/ModelComponent/UploadComponentsExcel',
     method: 'post',
+  })
+}
+
+//获取构件对应文件信息(模糊查询)
+export function getComponentFiles(pageIndex, pageSize, componentId) {
+  return request({
+    url: '/api/ModelComponent/GetComponentFiles',
+    method: 'get',
+    params: { pageIndex, pageSize, componentId }
+  })
+}
+
+//删除构件对应文件信息
+export function deleteComponentFile(fileId) {
+  return request({
+    url: '/api/ModelComponent/DeleteComponentFile',
+    method: 'get',
+    params: { fileId }
+  })
+}
+
+//上传构件对应文件信息
+export function uploadComponentFile(data, modelId, componentId) {
+  return request({
+    url: '/api/ModelComponent/UploadComponentFile/?' + 'modelId=' + modelId + '&componentId=' + componentId,
+    //  url: '/api/ModelComponent/UploadComponentFile',
+    method: 'post',
+    data
   })
 }
