@@ -146,3 +146,23 @@ export function getComponentFileMenus(componentId) {
     params: { componentId }
   })
 }
+
+//获取所有模型构件评论信息
+export function getModelComponentComments(componentId, componentName, pageIndex, pageSize) {
+  return request({
+    url: '/api/ModelComponent/GetComments',
+    method: 'get',
+    params: { componentId, componentName, pageIndex, pageSize }
+  })
+}
+
+//删除模型构件评论信息
+export function deleteComponentComment(commentId) {
+  return request({
+    url: '/api/ModelComponent/DeleteComment',
+    method: 'get',
+    params: { commentId }
+  })
+}
+
+

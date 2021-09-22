@@ -31,6 +31,7 @@ export const componentMap = {
   'componentmenu_index':()=>import('@/views/modelcomponent/componentmenu').then(f => f.default),
   'componenttype_index':()=>import('@/views/modelcomponent/componenttype').then(f => f.default),
   'componentfile_index':()=>import('@/views/modelcomponent/componentfile').then(f => f.default),
+  'componentcomment_index':()=>import('@/views/modelcomponent/componentcomment').then(f => f.default),
 }
 
 /**
