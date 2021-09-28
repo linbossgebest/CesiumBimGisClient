@@ -338,11 +338,6 @@ export default {
     },
   },
   computed: {
-    typeInfo() {
-      return function (typeId) {
-        return this.componentTypeList.find((f) => f.Id === typeId).TypeName;
-      };
-    },
   },
 };
 </script>

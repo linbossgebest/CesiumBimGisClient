@@ -45,7 +45,7 @@
       <div>
         <el-upload
           class="filter-item"
-          action="http://localhost:5000/api/ModelComponent/UploadComponentsExcel"
+          :action="importUrl"
           :file-list="fileList"
           :on-change="handleUploadChange"
           :on-success="handleUploadSuccess"
@@ -253,6 +253,7 @@ export default {
         page: 1,
         limit: 20,
       },
+      importUrl:"http://222.72.129.158:8668/api/ModelComponent/UploadComponentsExcel",
       temp: {
         ComponentId: "",
         ComponentName: "",
