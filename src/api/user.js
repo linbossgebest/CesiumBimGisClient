@@ -3,7 +3,7 @@ import request from '@/utils/request'
 //用户登录api
 export function login(data) {
   return request({
-    url: '/api/Account/RequestToken',
+    url: '/api/Account/Login',
     method: 'post',
     data
   })
