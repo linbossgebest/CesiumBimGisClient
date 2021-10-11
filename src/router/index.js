@@ -32,6 +32,9 @@ export const componentMap = {
   'componenttype_index':()=>import('@/views/modelcomponent/componenttype').then(f => f.default),
   'componentfile_index':()=>import('@/views/modelcomponent/componentfile').then(f => f.default),
   'componentcomment_index':()=>import('@/views/modelcomponent/componentcomment').then(f => f.default),
+  'option_log':()=>import('@/views/logmanage/optionlog').then(f => f.default),
+  'exception_log':()=>import('@/views/logmanage/exceptionlog').then(f => f.default),
+  'visit_log':()=>import('@/views/logmanage/visitlog').then(f => f.default),
 }
 
 /**
@@ -108,6 +111,7 @@ export const constantRoutes = [
   {
     path: '/documentation',
     component: Layout,
+    hidden: true,
     children: [
       {
         path: 'index',

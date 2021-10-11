@@ -51,14 +51,18 @@ export function logout() {
   //   url: '/vue-element-admin/user/logout',
   //   method: 'post'
   // })
-  return new Promise(function (resolve, reject) {
-    resolve();
-    // //做一些异步操作
-    // setTimeout(function () {
-    //   console.log('执行完成Promise');
-    //   resolve('要返回的数据可以任何数据例如接口返回数据');
-    // }, 2000)
-  });
+  return request({
+    url: '/api/Account/Logout',
+    method: 'get',
+  })
+  // return new Promise(function (resolve, reject) {
+  //   resolve();
+  //   // //做一些异步操作
+  //   // setTimeout(function () {
+  //   //   console.log('执行完成Promise');
+  //   //   resolve('要返回的数据可以任何数据例如接口返回数据');
+  //   // }, 2000)
+  // });
 }
 
 //获取所有用户角色信息
