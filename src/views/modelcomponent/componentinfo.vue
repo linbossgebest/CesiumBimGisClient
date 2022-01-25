@@ -253,7 +253,8 @@ export default {
         page: 1,
         limit: 20,
       },
-      importUrl:"http://222.72.129.158:8668/api/ModelComponent/UploadComponentsExcel",
+      // importUrl:"http://222.72.129.158:8668/api/ModelComponent/UploadComponentsExcel",
+      importUrl:"https://bimgis.constructstation.com/api/ModelComponent/UploadComponentsExcel",
       temp: {
         ComponentId: "",
         ComponentName: "",
